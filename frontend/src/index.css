@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;600;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-wizard-purple: #2d1b4e;
+  --color-wizard-indigo: #1a1033;
+  --color-wizard-gold: #ffd700;
+  --color-wizard-pink: #ff00ff;
+  --color-wizard-accent: #7b2cbf;
+
+  --font-press-start: "Press Start 2P", system-ui;
+  --font-outfit: "Outfit", sans-serif;
+}
+
+:root {
+  font-family: "Outfit", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: var(--color-wizard-indigo);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+}
+
+@layer base {
+  .pixel-border {
+    border-style: solid;
+    border-width: 4px;
+    border-image-slice: 2;
+    border-image-width: 2;
+    border-image-outset: 0;
+    border-image-source: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><path d='M0 2h2v2H0zM2 0h2v2H2zM4 2h2v2H4zM2 4h2v2H2z' fill='%237b2cbf' /></svg>");
+    image-rendering: pixelated;
+  }
+
+  .glass-card {
+    background: rgba(45, 27, 78, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .pixel-text {
+    font-family: "Press Start 2P", cursive;
+    text-transform: uppercase;
+  }
+
+  .premium-btn {
+    position: relative;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-size: 200% auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 4px 0 0 rgba(0, 0, 0, 0.2),
+      0 10px 20px -10px rgba(255, 0, 255, 0.5);
+    cursor: pointer;
+  }
+
+  .premium-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    background-position: right center;
+    box-shadow:
+      0 6px 0 0 rgba(0, 0, 0, 0.2),
+      0 15px 30px -10px rgba(255, 0, 255, 0.6);
+  }
+
+  .premium-btn:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow:
+      0 1px 0 0 rgba(0, 0, 0, 0.2),
+      0 5px 10px -5px rgba(255, 0, 255, 0.4);
+  }
+
+  .premium-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(123, 44, 191, 0.5);
+}
+
+.potion-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.glow-red {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+}
+
+.animate-in {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.zoom-in-95 {
+  animation-name: zoomIn95;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn95 {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-wizard-indigo);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-wizard-accent);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-wizard-gold);
+}

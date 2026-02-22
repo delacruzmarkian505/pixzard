@@ -1,0 +1,6 @@
+/* Base App styles are largely handled by index.css and Tailwind */
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
