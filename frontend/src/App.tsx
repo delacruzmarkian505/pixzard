@@ -120,32 +120,78 @@ function App() {
       Math.floor(Math.random() * 500) +
       (selectedIngredients.length === 3 ? 450 : 100);
 
-    // Dynamic naming logic
+    // Dynamic naming and description logic
     const names = selectedIngredients.map((i) => i.name).sort();
     let potionName = "Mystic Brew";
+    let potionDescription = "";
 
     if (names.includes("Dragon Scale") && names.includes("Phoenix Feather")) {
-      potionName = names.length === 3 ? "Eternal Sunfire" : "Dragon's Rebirth";
+      if (names.length === 3) {
+        potionName = "Eternal Sunfire";
+        potionDescription =
+          "A radiant brew that glows with the heat of a thousand suns. Heals wounds and clears the path with blinding light.";
+      } else {
+        potionName = "Dragon's Rebirth";
+        potionDescription =
+          "Infused with the essence of fire and myth. Restores life force and grants the resilience of a dragon.";
+      }
     } else if (names.includes("Nightshade") && names.includes("Ghost Mist")) {
-      potionName = names.length === 3 ? "Void Whisper" : "Spectral Toxin";
+      if (names.length === 3) {
+        potionName = "Void Whisper";
+        potionDescription =
+          "A dark, swirling liquid that seems to absorb light. Inflicts devastating soul damage on those who oppose you.";
+      } else {
+        potionName = "Spectral Toxin";
+        potionDescription =
+          "A ghostly green mist trapped in a vial. Weakens the spirit and slowly drains the life of your enemies.";
+      }
     } else if (names.includes("Moon Leaf") && names.includes("Ghost Mist")) {
       potionName = "Lunar Mirage";
+      potionDescription =
+        "A shimmering potion that reflects the silver light of the moon. Grants exceptional clarity and wards off illusions.";
     } else if (names.includes("Storm Core") && names.includes("Dragon Scale")) {
       potionName = "Thunder Drake Essence";
+      potionDescription =
+        "A crackling elixir that channels the fury of a storm. Strikes enemies with lightning and grants a boost in speed.";
     } else if (names.length === 3) {
       potionName = "Grand Alchemist's Elixir";
+      potionDescription =
+        "The pinnacle of alchemical science. A perfectly balanced draft that empowers every fiber of your being.";
     } else {
       const prefixes = [
-        "Radiant",
-        "Shadowed",
-        "Unstable",
-        "Purified",
-        "Misty",
-        "Fiery",
-        "Arcane",
+        {
+          name: "Radiant",
+          desc: "A bright mixture that purifies the soul and restores vitality.",
+        },
+        {
+          name: "Shadowed",
+          desc: "A murky brew that hides the user in darkness, granting a tactical advantage.",
+        },
+        {
+          name: "Unstable",
+          desc: "A bubbling solution that reacts violently. Potent but unpredictable.",
+        },
+        {
+          name: "Purified",
+          desc: "A crystal-clear liquid that removes all impurities and strengthens the mind.",
+        },
+        {
+          name: "Misty",
+          desc: "A vaporous concoction that allows for swift movement.",
+        },
+        {
+          name: "Fiery",
+          desc: "A burning liquid that ignites the spirit and enhances combat prowess.",
+        },
+        {
+          name: "Arcane",
+          desc: "A pulsing purple elixir that connects the user to raw magical currents.",
+        },
       ];
       const suffixes = ["Concoction", "Draft", "Mixture", "Solution"];
-      potionName = `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`;
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      potionName = `${prefix.name} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`;
+      potionDescription = prefix.desc;
     }
 
     // Potion Color Logic (Mix first two ingredients using Hex for reliability)
@@ -163,9 +209,7 @@ function App() {
 
     const newPotionData: NewPotion & { quantity: number } = {
       name: potionName,
-      effect:
-        "Combined power of " +
-        selectedIngredients.map((i) => i.name).join(" & "),
+      effect: potionDescription,
       color: `${color1},${color2}`,
       rarity: price > 750 ? "Legendary" : price > 450 ? "Rare" : "Common",
       price,
@@ -337,27 +381,52 @@ function App() {
     // Combat logic: Higher rarity = more power
     const powerScale =
       potion.rarity === "Legendary"
-        ? 2.0
+        ? 2.5
         : potion.rarity === "Rare"
-          ? 1.4
+          ? 1.6
           : 1.0;
 
-    // Potions with 'Nightshade' or 'Storm Core' deal more damage
-    // Potions with 'Moon Leaf' or 'Phoenix Feather' heal more
-    const isOffensive =
-      potion.effect.includes("Nightshade") ||
-      potion.effect.includes("Storm Core");
-    const isDefensive =
-      potion.effect.includes("Moon Leaf") ||
-      potion.effect.includes("Phoenix Feather");
+    let damage = 0;
+    let heal = 0;
+
+    const name = potion.name;
+
+    // Check specific iconic potions
+    if (name === "Void Whisper" || name === "Spectral Toxin") {
+      damage = 60 * powerScale;
+    } else if (name === "Thunder Drake Essence") {
+      damage = 45 * powerScale;
+    } else if (name === "Eternal Sunfire" || name === "Dragon's Rebirth") {
+      heal = 40 * powerScale;
+      damage = 20 * powerScale;
+    } else if (name === "Lunar Mirage") {
+      heal = 25 * powerScale;
+      damage = 10 * powerScale;
+    } else if (name === "Grand Alchemist's Elixir") {
+      heal = 50 * powerScale;
+      damage = 50 * powerScale;
+    } else {
+      // Generic Categorization based on name prefixes
+      if (
+        name.includes("Fiery") ||
+        name.includes("Arcane") ||
+        name.includes("Unstable")
+      ) {
+        damage = 30 * powerScale;
+      } else if (name.includes("Radiant") || name.includes("Purified")) {
+        heal = 30 * powerScale;
+      } else if (name.includes("Shadowed") || name.includes("Misty")) {
+        damage = 15 * powerScale;
+        heal = 15 * powerScale;
+      } else {
+        damage = 20 * powerScale;
+        heal = 5 * powerScale;
+      }
+    }
 
     return {
-      damage: isOffensive
-        ? Math.floor(50 * powerScale)
-        : Math.floor(15 * powerScale),
-      heal: isDefensive
-        ? Math.floor(25 * powerScale)
-        : Math.floor(5 * powerScale),
+      damage: Math.floor(damage),
+      heal: Math.floor(heal),
     };
   };
 
