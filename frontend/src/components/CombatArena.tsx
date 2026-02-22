@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Shield, Sword, X, Zap, Sparkles } from "lucide-react";
-import { Player, Potion } from "../types";
+import { Shield, Sword, X, Zap, Sparkles, Heart } from "lucide-react";
+import { Player, Potion, Boss } from "../types";
+import { getPotionStats, getEnhancedDescription } from "../potionUtils";
 
 interface Monster {
   name: string;
@@ -15,6 +16,7 @@ interface CombatArenaProps {
   playerHp: number;
   setPlayerHp: React.Dispatch<React.SetStateAction<number>>;
   potions: Potion[];
+  selectedBoss: Boss;
   onClose: () => void;
   onVictory: (rewardCoins: number, rewardXp: number) => void;
   onUsePotion: (potion: Potion) => { damage: number; heal: number };
@@ -25,21 +27,22 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
   playerHp,
   setPlayerHp,
   potions,
+  selectedBoss,
   onClose,
   onVictory,
   onUsePotion,
   onConsumePotion,
 }) => {
   const [monster, setMonster] = useState<Monster>({
-    name: "Ancient Emerald Drake",
-    maxHp: 500,
-    hp: 500,
-    attack: 45,
-    image: "/retro_dragon.png",
+    name: selectedBoss.name,
+    maxHp: selectedBoss.maxHp,
+    hp: selectedBoss.maxHp,
+    attack: selectedBoss.attack,
+    image: selectedBoss.image,
   });
 
   const [combatLog, setCombatLog] = useState<string[]>([
-    "A wild dragon appears!",
+    `A powerful ${selectedBoss.name} appears!`,
   ]);
   const [turn, setTurn] = useState<"player" | "monster">("player");
   const [isAnimating, setIsAnimating] = useState(false);
@@ -120,7 +123,7 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
           setPlayerState("idle");
           if (nextMonsterHp <= 0) {
             setResult("victory");
-            onVictory(300, 100);
+            onVictory(selectedBoss.reward.coins, selectedBoss.reward.xp);
           } else {
             setTurn("monster");
           }
@@ -130,7 +133,7 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
         return { ...prev, hp: nextMonsterHp };
       });
 
-      addLog(`You strike the dragon for ${damage} damage!`);
+      addLog(`You strike the enemy for ${damage} damage!`);
     }, 500);
   };
 
@@ -152,7 +155,7 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
         if (nextMonsterHp <= 0) {
           setTimeout(() => {
             setResult("victory");
-            onVictory(400, 150);
+            onVictory(selectedBoss.reward.coins, selectedBoss.reward.xp);
           }, 500);
         }
 
@@ -235,7 +238,19 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
         </div>
 
         {/* Battle Arena */}
-        <div className="lg:col-span-9 relative glass-card rounded-3xl pixel-border h-[500px] lg:h-[650px] bg-linear-to-b from-purple-950/20 to-black/60 overflow-hidden flex items-end justify-between px-12 pb-24">
+        <div
+          className="lg:col-span-9 relative glass-card rounded-3xl pixel-border h-[500px] lg:h-[650px] overflow-hidden flex items-end justify-between px-12 pb-24 shadow-2xl"
+          style={{
+            backgroundImage: `url('${selectedBoss.background}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          {/* Cinematic Dark Overlay */}
+          <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/20 to-black/80 z-0"></div>
+          <div className="absolute inset-0 bg-wizard-indigo/20 z-0"></div>
+          {/* Vignette */}
+          <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.8)] z-0"></div>
           {/* Monster Section */}
           <div className="flex flex-col items-center gap-4 relative">
             {/* Monster HP Bar */}
@@ -270,7 +285,13 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
                 src={monster.image}
                 alt={monster.name}
                 className="w-48 h-48 lg:w-80 lg:h-80 object-contain filter drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]"
-                style={{ imageRendering: "pixelated" }}
+                style={{
+                  imageRendering: "pixelated",
+                  transform:
+                    monster.name === "Ancient Emerald Drake"
+                      ? "none"
+                      : "scaleX(-1)",
+                }}
               />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                 <Sparkles
@@ -283,11 +304,6 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
                 </div>
               )}
             </div>
-          </div>
-
-          {/* VS Divider/FX */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-            <Zap className="lg:w-96 lg:h-96 text-wizard-gold animate-pulse" />
           </div>
 
           {/* Player Section */}
@@ -334,15 +350,17 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
             </div>
           </div>
 
-          {/* Combat Log Overlay */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-lg flex flex-col items-center gap-1 z-10 px-6">
+          {/* Combat Log Overlay (Fixed: Newest at bottom, rises and fades) */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md flex flex-col-reverse items-center gap-1.5 z-10 px-6">
             {combatLog.map((log, i) => (
               <div
                 key={i}
-                className={`text-[10px] pixel-text text-center px-4 py-1 rounded-full border border-white/5 bg-black/40 backdrop-blur-sm transition-all duration-300 ${
+                className={`text-[9px] pixel-text text-center px-4 py-1.5 rounded-full border transition-all duration-500 ${
                   i === 0
-                    ? "text-white scale-110 border-white/20 bg-black/60"
-                    : "text-white/20 scale-90"
+                    ? "text-white border-wizard-accent/40 bg-wizard-indigo/60 shadow-[0_0_15px_rgba(168,85,247,0.2)] opacity-100 scale-100"
+                    : i === 1
+                      ? "text-white/50 border-white/10 bg-black/40 opacity-60 scale-95"
+                      : "text-white/10 border-transparent bg-transparent opacity-20 scale-90"
                 }`}
               >
                 {log}
@@ -354,14 +372,16 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
           {result && (
             <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center animate-in zoom-in duration-300 z-20">
               <h2
-                className={`pixel-text text-4xl mb-4 ${result === "victory" ? "text-wizard-gold" : "text-red-500"}`}
+                className={`pixel-text text-3xl mb-4 text-center ${result === "victory" ? "text-wizard-gold" : "text-red-500"}`}
               >
-                {result === "victory" ? "DRAGON SLAIN!" : "FATED DEFEAT"}
-              </h2>
-              <p className="text-white/60 mb-8 uppercase tracking-widest">
                 {result === "victory"
-                  ? "+300 Coins | +100 XP"
-                  : "The dragon was too powerful..."}
+                  ? `${selectedBoss.name} DEFEATED!`
+                  : "FATED DEFEAT"}
+              </h2>
+              <p className="text-white/60 mb-8 uppercase tracking-widest text-center text-xs">
+                {result === "victory"
+                  ? `+${selectedBoss.reward.coins} Coins | +${selectedBoss.reward.xp} XP`
+                  : `${selectedBoss.name} was too powerful...`}
               </p>
               <button
                 onClick={onClose}
@@ -379,12 +399,34 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
             <h4 className="pixel-text text-[10px] text-wizard-gold flex items-center gap-2">
               <Shield className="w-4 h-4" /> Tactics
             </h4>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 relative">
               <button
                 onClick={handlePlayerAttack}
                 disabled={turn !== "player" || isAnimating || !!result}
-                className="w-full py-4 bg-white/5 hover:bg-wizard-accent/20 border border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-20 group"
+                className={`group w-full py-4 bg-white/5 hover:bg-wizard-accent/20 border border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all disabled:opacity-20 hover:z-30 relative`}
               >
+                {/* Strike Tooltip */}
+                <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 w-44 p-3 bg-wizard-indigo/98 rounded-xl border border-wizard-gold/30 shadow-[0_0_20px_rgba(212,175,55,0.15)] opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-x-1">
+                  <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 border-6 border-transparent border-l-wizard-gold/30"></div>
+                  <div className="flex items-center gap-2 mb-1.5 pb-1.5 border-b border-white/5">
+                    <Sword className="w-3.5 h-3.5 text-red-500" />
+                    <span className="pixel-text text-[8px] text-wizard-gold uppercase tracking-wider">
+                      Basic Strike
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-white/50 leading-relaxed italic mb-2">
+                    Focus your arcane energy into a swift, physical strike.
+                  </p>
+                  <div className="flex justify-between items-center text-[9px]">
+                    <span className="opacity-40 uppercase tracking-tighter">
+                      Potency
+                    </span>
+                    <span className="text-red-400 font-bold font-mono">
+                      20-35 DMG
+                    </span>
+                  </div>
+                </div>
+
                 <Sword className="w-5 h-5 text-wizard-gold group-hover:scale-110 transition-transform" />
                 <span className="font-bold uppercase tracking-widest text-[10px]">
                   Strike
@@ -393,45 +435,80 @@ export const CombatArena: React.FC<CombatArenaProps> = ({
             </div>
           </div>
 
-          <div className="glass-card p-6 rounded-3xl border-white/10 flex-1 overflow-hidden flex flex-col">
+          <div className="glass-card p-6 rounded-3xl border-white/10 flex-col flex-1 flex overflow-visible">
             <h4 className="pixel-text text-[10px] text-wizard-gold mb-4 flex items-center gap-2">
               <Zap className="w-4 h-4" /> Grimoire
             </h4>
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
+            <div className="flex-1 space-y-4 pr-1">
               {potions.length === 0 ? (
                 <p className="text-[10px] opacity-20 italic text-center py-8">
                   No brews ready...
                 </p>
               ) : (
-                potions.map((potion) => (
-                  <button
-                    key={potion.id}
-                    onClick={() => handlePotionUse(potion)}
-                    disabled={turn !== "player" || isAnimating || !!result}
-                    className="w-full p-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-between group transition-all disabled:opacity-20 translate-z-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
-                        style={{
-                          background: `linear-gradient(${potion.color.replace(",", ",")})`,
-                          color: potion.color.split(",")[0],
-                        }}
-                      />
-                      <div className="text-left">
-                        <p className="text-[10px] font-bold line-clamp-1 group-hover:text-wizard-gold transition-colors">
-                          {potion.name}
-                        </p>
-                        <p className="text-[8px] opacity-40 uppercase">
-                          {potion.rarity}
+                potions.map((potion) => {
+                  const stats = getPotionStats(potion);
+                  return (
+                    <div key={potion.id} className="relative group">
+                      <button
+                        onClick={() => handlePotionUse(potion)}
+                        disabled={turn !== "player" || isAnimating || !!result}
+                        className="w-full p-2.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-between group transition-all disabled:opacity-20 translate-z-0 hover:border-wizard-accent/50 hover:z-40"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_currentColor]"
+                            style={{
+                              background: `linear-gradient(${potion.color.replace(",", ",")})`,
+                              color: potion.color.split(",")[0],
+                            }}
+                          />
+                          <div className="text-left">
+                            <p className="text-[10px] font-bold line-clamp-1 group-hover:text-wizard-gold transition-colors">
+                              {potion.name}
+                            </p>
+                            <p className="text-[8px] opacity-40 uppercase">
+                              {potion.rarity}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full font-mono text-wizard-gold group-hover:bg-wizard-gold/20 transition-all">
+                          x{potion.quantity || 1}
+                        </span>
+                      </button>
+
+                      {/* Combat Potion Tooltip (Improved) */}
+                      <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 w-52 p-3 bg-wizard-indigo/98 backdrop-blur-md rounded-xl border border-wizard-accent/40 shadow-[0_0_30px_rgba(168,85,247,0.2)] opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-x-1 z-50">
+                        <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 border-6 border-transparent border-l-wizard-accent/40"></div>
+
+                        <div className="flex items-center justify-around gap-2 mb-2 pb-2 border-b border-white/5">
+                          <div className="flex flex-col items-center">
+                            <Sword className="w-3.5 h-3.5 text-red-500 mb-0.5" />
+                            <span className="text-[10px] font-bold text-red-400 leading-none">
+                              {stats.damage}
+                            </span>
+                          </div>
+                          <div className="h-4 w-px bg-white/5"></div>
+                          <div className="flex flex-col items-center">
+                            <Heart className="w-3.5 h-3.5 text-emerald-500 mb-0.5" />
+                            <span className="text-[10px] font-bold text-emerald-400 leading-none">
+                              {stats.heal}
+                            </span>
+                          </div>
+                          <div className="h-4 w-px bg-white/5"></div>
+                          <div className="flex flex-col items-center">
+                            <span className="text-[7px] px-1.5 py-0.5 rounded-sm border border-wizard-gold/20 uppercase text-wizard-gold/60 font-bold bg-wizard-gold/5">
+                              {potion.rarity}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-[9px] text-white/60 leading-relaxed italic text-center px-1">
+                          "{getEnhancedDescription(potion.name, potion.effect)}"
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded-full font-mono text-wizard-gold group-hover:bg-wizard-gold/20 transition-all">
-                      x{potion.quantity || 1}
-                    </span>
-                  </button>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

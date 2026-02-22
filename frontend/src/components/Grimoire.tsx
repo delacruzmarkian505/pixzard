@@ -28,7 +28,7 @@ export const Grimoire: React.FC<GrimoireProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-12 pb-8">
           {potions.map((potion) => (
             <PotionCard
               key={potion.id}

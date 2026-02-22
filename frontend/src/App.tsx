@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { potionApi, playerApi } from "./api";
-import { Potion, Ingredient, NewPotion, Player } from "./types";
+import { Potion, Ingredient, NewPotion, Player, Boss } from "./types";
 import { LoginPage } from "./pages/LoginPage";
 import { LaboratoryPage } from "./pages/LaboratoryPage";
 import { LandingPage } from "./pages/LandingPage";
@@ -9,8 +9,8 @@ import MagicForest from "./components/MagicForest";
 import { ShopModal } from "./components/ShopModal";
 import { ConfirmModal } from "./components/ConfirmModal";
 import { CombatArena } from "./components/CombatArena";
+import { BossSelectionModal } from "./components/BossSelectionModal";
 import { getPotionStats, getEnhancedDescription } from "./potionUtils";
-
 
 function App() {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
@@ -24,6 +24,8 @@ function App() {
   const [isForestOpen, setIsForestOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isLairOpen, setIsLairOpen] = useState(false);
+  const [isBossSelectionOpen, setIsBossSelectionOpen] = useState(false);
+  const [activeBoss, setActiveBoss] = useState<Boss | null>(null);
   const [showLanding, setShowLanding] = useState(true);
   const [combatPlayerHp, setCombatPlayerHp] = useState(100);
   const [confirmState, setConfirmState] = useState<{
@@ -464,7 +466,7 @@ function App() {
         onGoToForest={() => setIsForestOpen(true)}
         onSellPotion={handleSellPotion}
         onOpenShop={() => setIsShopOpen(true)}
-        onGoToLair={() => setIsLairOpen(true)}
+        onGoToLair={() => setIsBossSelectionOpen(true)}
       />
       {isForestOpen && (
         <MagicForest
@@ -480,15 +482,27 @@ function App() {
           onClose={() => setIsShopOpen(false)}
         />
       )}
-      {isLairOpen && (
+      {isBossSelectionOpen && (
+        <BossSelectionModal
+          onSelect={(boss) => {
+            setActiveBoss(boss);
+            setIsBossSelectionOpen(false);
+            setIsLairOpen(true);
+          }}
+          onClose={() => setIsBossSelectionOpen(false)}
+        />
+      )}
+      {isLairOpen && activeBoss && (
         <CombatArena
           player={currentPlayer}
           playerHp={combatPlayerHp}
           setPlayerHp={setCombatPlayerHp}
           potions={potions}
+          selectedBoss={activeBoss}
           onClose={() => {
             setIsLairOpen(false);
-            setCombatPlayerHp(100); // Reset for next battle when leaving
+            setCombatPlayerHp(100);
+            setActiveBoss(null);
           }}
           onVictory={handleLairVictory}
           onUsePotion={calculatePotionCombatEffect}

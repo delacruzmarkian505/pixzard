@@ -140,24 +140,41 @@ export const BrewingStation: React.FC<BrewingStationProps> = ({
                 key={ing.id}
                 onClick={() => onToggleIngredient(ing)}
                 disabled={stock === 0 && !isSelected}
-                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border transition-all relative overflow-hidden ${
+                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border transition-all relative ${
                   isSelected
-                    ? "bg-wizard-accent border-wizard-gold shadow-lg shadow-wizard-accent/50"
+                    ? "bg-wizard-accent border-wizard-gold shadow-lg shadow-wizard-accent/50 z-20"
                     : stock === 0
-                      ? "bg-black/10 border-white/5 opacity-40 cursor-not-allowed"
-                      : "bg-black/20 border-white/10 hover:border-wizard-accent hover:bg-black/40"
+                      ? "bg-black/10 border-white/5 opacity-40 cursor-not-allowed z-0"
+                      : "bg-black/20 border-white/10 hover:border-wizard-accent hover:bg-black/40 hover:z-30 z-10"
                 }`}
               >
-                {/* Hover Description Overlay */}
-                <div className="absolute inset-0 bg-wizard-indigo/95 flex items-center justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                  <p className="text-[8px] text-center leading-tight italic text-wizard-gold px-1">
+                {/* Floating Ingredient Tooltip (Viewport Aware) */}
+                <div
+                  className={`absolute left-1/2 -translate-x-1/2 w-48 p-3 bg-wizard-indigo rounded-xl border-2 border-wizard-accent/50 shadow-[0_10px_30px_rgba(0,0,0,0.9)] opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 z-50 transform
+                  ${isBrewing ? "hidden" : ""}
+                  /* Simple logic: if top row (Dragon/Moon), show below. Otherwise show above */
+                  ${ing.id === "i1" || ing.id === "i2" ? "top-full mt-3 group-hover:translate-y-2 translate-y-0" : "bottom-full mb-3 group-hover:-translate-y-2 translate-y-0"}
+                `}
+                >
+                  <div
+                    className={`absolute left-1/2 -translate-x-1/2 border-6 border-transparent ${
+                      ing.id === "i1" || ing.id === "i2"
+                        ? "bottom-full border-b-wizard-indigo"
+                        : "top-full border-t-wizard-indigo"
+                    }`}
+                  ></div>
+                  <p className="text-[11px] text-center leading-relaxed italic text-wizard-gold font-medium px-1">
                     {ing.description}
                   </p>
                 </div>
 
-                <div className={`${ing.color}`}>{ing.icon}</div>
+                <div
+                  className={`${ing.color} group-hover:scale-110 transition-transform`}
+                >
+                  {ing.icon}
+                </div>
                 <span className="text-[10px] font-medium">{ing.name}</span>
-                <span className="absolute -top-1 -right-1 bg-wizard-purple border border-white/20 text-[8px] px-1.5 rounded-full font-bold z-20">
+                <span className="absolute -top-1.5 -right-1.5 bg-wizard-indigo border-2 border-wizard-accent/50 text-[9px] px-2 py-0.5 rounded-full font-bold z-40 shadow-[0_0_10px_rgba(168,85,247,0.5)]">
                   {stock}
                 </span>
               </button>
