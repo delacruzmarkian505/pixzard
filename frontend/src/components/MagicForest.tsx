@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trees, Sparkles, Flame, Droplets, Zap, Skull, X } from "lucide-react";
+import { Sparkles, Flame, Droplets, Zap, Skull, X } from "lucide-react";
 import { Player, Ingredient } from "../types";
 import { INGREDIENTS } from "./BrewingStation";
 
@@ -105,35 +105,28 @@ const MagicForest: React.FC<MagicForestProps> = ({
       <div className="flex flex-col gap-4 w-full max-w-4xl">
         <div
           ref={containerRef}
-          className="relative w-full h-[600px] glass-card rounded-3xl pixel-border overflow-hidden"
+          className="relative w-full h-[600px] glass-card rounded-3xl pixel-border overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)]"
           style={{
-            backgroundImage:
-              'linear-gradient(rgba(13, 10, 25, 0.8), rgba(13, 10, 25, 0.95)), url("/forest_bg.png")',
+            backgroundImage: `url('/magic_forest_bg.png')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          {/* Forest Background Decoration */}
-          <div className="absolute inset-0 pointer-events-none">
-            {/* Layered Forest Depths */}
-            <div className="absolute inset-0 bg-linear-to-b from-emerald-950/40 via-transparent to-emerald-900/20" />
+          {/* Cinematic Dark Overlay & Vignette */}
+          <div className="absolute inset-0 bg-linear-to-b from-black/60 via-transparent to-black/80 z-0"></div>
+          <div className="absolute inset-0 bg-emerald-950/20 z-0"></div>
+          <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.7)] z-0"></div>
 
-            {/* Lush Trees */}
-            <Trees className="absolute -bottom-4 -left-10 w-64 h-64 text-emerald-900/40 blur-sm" />
-            <Trees className="absolute bottom-0 left-20 w-48 h-48 text-emerald-800/60" />
-            <Trees className="absolute bottom-10 right-10 w-72 h-72 text-emerald-900/30 blur-md" />
-            <Trees className="absolute -bottom-8 -right-10 w-56 h-56 text-emerald-700/50" />
+          {/* Animated Environment FX */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            {/* Pulsing Fireflies */}
+            <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-emerald-400 rounded-full blur-[2px] animate-pulse shadow-[0_0_10px_#34d399]" />
+            <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-yellow-300 rounded-full blur-[2px] animate-pulse delay-700 shadow-[0_0_8px_#fde047]" />
+            <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-cyan-400 rounded-full blur-[2px] animate-pulse delay-1000 shadow-[0_0_12px_#22d3ee]" />
+            <div className="absolute bottom-1/4 right-1/2 w-1 h-1 bg-emerald-500 rounded-full blur-[1px] animate-pulse delay-500" />
 
-            {/* Animated Fireflies */}
-            <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-emerald-400 rounded-full blur-[2px] animate-pulse" />
-            <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-emerald-300 rounded-full blur-[2px] animate-pulse delay-700" />
-            <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-emerald-500 rounded-full blur-[2px] animate-pulse delay-1000" />
-
-            {/* Mossy Floor Glow */}
-            <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-emerald-900/40 to-transparent blur-xl" />
-
-            {/* Magical Glade Light */}
-            <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/10 blur-[180px] rounded-full" />
+            {/* Magical Glade Bloom */}
+            <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/10 blur-[150px] rounded-full" />
           </div>
 
           {/* Header */}
