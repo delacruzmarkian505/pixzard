@@ -16,36 +16,48 @@ export const INGREDIENTS: Ingredient[] = [
     name: "Dragon Scale",
     icon: <Flame className="w-5 h-5" />,
     color: "text-red-500",
+    description:
+      "Hardened scales that retain extreme heat. Used for fire-based and defensive brews.",
   },
   {
     id: "i2",
     name: "Moon Leaf",
     icon: <Droplets className="w-5 h-5" />,
     color: "text-blue-300",
+    description:
+      "Leaves that glow under starlight. Essential for healing and purification potions.",
   },
   {
     id: "i3",
     name: "Storm Core",
     icon: <Zap className="w-5 h-5" />,
     color: "text-yellow-400",
+    description:
+      "Crackling energy from the heart of a tempest. Adds electrical potency to mixtures.",
   },
   {
     id: "i4",
     name: "Nightshade",
     icon: <Skull className="w-5 h-5" />,
     color: "text-purple-500",
+    description:
+      "A toxic plant that blooms in total darkness. Primary ingredient for offensive toxins.",
   },
   {
     id: "i5",
     name: "Phoenix Feather",
     icon: <Zap className="w-5 h-5 text-orange-500" />,
     color: "text-orange-500",
+    description:
+      "A feather that never turns to ash. Grants powerful regenerative properties.",
   },
   {
     id: "i6",
     name: "Ghost Mist",
     icon: <Sparkles className="w-5 h-5 text-slate-300" />,
     color: "text-slate-300",
+    description:
+      "Ethereal vapor from the spirit realm. Useful for spectral and illusionary effects.",
   },
 ];
 
@@ -128,7 +140,7 @@ export const BrewingStation: React.FC<BrewingStationProps> = ({
                 key={ing.id}
                 onClick={() => onToggleIngredient(ing)}
                 disabled={stock === 0 && !isSelected}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all relative ${
+                className={`group flex flex-col items-center gap-2 p-3 rounded-xl border transition-all relative overflow-hidden ${
                   isSelected
                     ? "bg-wizard-accent border-wizard-gold shadow-lg shadow-wizard-accent/50"
                     : stock === 0
@@ -136,9 +148,16 @@ export const BrewingStation: React.FC<BrewingStationProps> = ({
                       : "bg-black/20 border-white/10 hover:border-wizard-accent hover:bg-black/40"
                 }`}
               >
+                {/* Hover Description Overlay */}
+                <div className="absolute inset-0 bg-wizard-indigo/95 flex items-center justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                  <p className="text-[8px] text-center leading-tight italic text-wizard-gold px-1">
+                    {ing.description}
+                  </p>
+                </div>
+
                 <div className={`${ing.color}`}>{ing.icon}</div>
                 <span className="text-[10px] font-medium">{ing.name}</span>
-                <span className="absolute -top-1 -right-1 bg-wizard-purple border border-white/20 text-[8px] px-1.5 rounded-full font-bold">
+                <span className="absolute -top-1 -right-1 bg-wizard-purple border border-white/20 text-[8px] px-1.5 rounded-full font-bold z-20">
                   {stock}
                 </span>
               </button>

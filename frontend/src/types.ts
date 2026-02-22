@@ -27,6 +27,7 @@ export interface Ingredient {
   name: string;
   icon: React.ReactNode;
   color: string;
+  description: string;
 }
 
 export type NewPotion = Omit<Potion, "id" | "player">;

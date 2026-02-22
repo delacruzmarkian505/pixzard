@@ -1,6 +1,7 @@
 import React from "react";
-import { Droplets, Pencil, Trash2, Coins } from "lucide-react";
+import { Droplets, Pencil, Trash2, Coins, Sword, Heart } from "lucide-react";
 import { Potion } from "../types";
+import { getPotionStats, getEnhancedDescription } from "../potionUtils";
 
 interface PotionCardProps {
   potion: Potion;
@@ -19,53 +20,39 @@ export const PotionCard: React.FC<PotionCardProps> = ({
     ? (potion.color || "").split(",")
     : ["#10b981", "#0d9488"];
 
-  const getEnhancedEffect = (name: string, effect: string) => {
-    if (!effect.startsWith("Combined power of")) return effect;
-
-    // Mapping of names to descriptions for legacy potions
-    const mappings: Record<string, string> = {
-      "Eternal Sunfire":
-        "A radiant brew that glows with the heat of a thousand suns. Heals wounds and clears the path with blinding light.",
-      "Dragon's Rebirth":
-        "Infused with the essence of fire and myth. Restores life force and grants the resilience of a dragon.",
-      "Void Whisper":
-        "A dark, swirling liquid that seems to absorb light. Inflicts devastating soul damage on those who oppose you.",
-      "Spectral Toxin":
-        "A ghostly green mist trapped in a vial. Weakens the spirit and slowly drains the life of your enemies.",
-      "Lunar Mirage":
-        "A shimmering potion that reflects the silver light of the moon. Grants exceptional clarity and wards off illusions.",
-      "Thunder Drake Essence":
-        "A crackling elixir that channels the fury of a storm. Strikes enemies with lightning and grants a boost in speed.",
-      "Grand Alchemist's Elixir":
-        "The pinnacle of alchemical science. A perfectly balanced draft that empowers every fiber of your being.",
-    };
-
-    if (mappings[name]) return mappings[name];
-
-    // Generic categorization based on name prefixes for legacy random potions
-    if (name.includes("Radiant"))
-      return "A bright mixture that purifies the soul and restores vitality.";
-    if (name.includes("Shadowed"))
-      return "A murky brew that hides the user in darkness, granting a tactical advantage.";
-    if (name.includes("Unstable"))
-      return "A bubbling solution that reacts violently. Potent but unpredictable.";
-    if (name.includes("Purified"))
-      return "A crystal-clear liquid that removes all impurities and strengthens the mind.";
-    if (name.includes("Misty"))
-      return "A vaporous concoction that allows for swift movement.";
-    if (name.includes("Fiery"))
-      return "A burning liquid that ignites the spirit and enhances combat prowess.";
-    if (name.includes("Arcane"))
-      return "A pulsing purple elixir that connects the user to raw magical currents.";
-
-    return "A mysterious bubbling concoction with unknown magical properties.";
-  };
+  const stats = getPotionStats(potion);
 
   return (
-    <div className="group relative bg-black/40 p-4 rounded-xl border border-white/5 hover:border-wizard-accent transition-all hover:bg-black/60">
+    <div className="group relative bg-black/40 p-4 rounded-xl border border-white/5 hover:border-wizard-accent/50 transition-all duration-300 hover:bg-black/60 overflow-hidden transform hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(168,85,247,0.3)]">
+      {/* Hover Stats Overlay */}
+      <div className="absolute inset-0 bg-wizard-indigo/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10 p-4">
+        <h4 className="pixel-text text-[10px] text-wizard-gold mb-1">
+          Combat Potency
+        </h4>
+        <div className="flex gap-6">
+          <div className="flex flex-col items-center">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30 mb-1">
+              <Sword className="w-5 h-5 text-red-500" />
+            </div>
+            <span className="font-bold text-red-400">{stats.damage}</span>
+            <span className="text-[8px] opacity-40 uppercase">Damage</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 mb-1">
+              <Heart className="w-5 h-5 text-emerald-500" />
+            </div>
+            <span className="font-bold text-emerald-400">{stats.heal}</span>
+            <span className="text-[8px] opacity-40 uppercase">Heal</span>
+          </div>
+        </div>
+        <p className="text-[9px] text-white/40 italic text-center mt-2 line-clamp-2">
+          "{getEnhancedDescription(potion.name, potion.effect)}"
+        </p>
+      </div>
+
       <div className="flex gap-4">
         <div
-          className="w-14 h-18 rounded-lg p-1 relative potion-float shadow-lg shadow-black/40"
+          className="w-14 h-18 rounded-lg p-1 relative potion-float shadow-lg shadow-black/40 shrink-0"
           style={{
             background: `linear-gradient(to bottom, ${c1}, ${c2})`,
           }}
@@ -76,12 +63,12 @@ export const PotionCard: React.FC<PotionCardProps> = ({
           </div>
         </div>
 
-        <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <h3 className="font-bold text-wizard-gold text-sm">
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-1 overflow-hidden">
+            <h3 className="font-bold text-wizard-gold text-sm truncate pr-2">
               {potion.name}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 shrink-0">
               <span
                 className={`text-[8px] px-1.5 py-0.5 rounded border border-white/20 uppercase font-bold ${
                   potion.rarity === "Legendary"
@@ -98,8 +85,8 @@ export const PotionCard: React.FC<PotionCardProps> = ({
               </span>
             </div>
           </div>
-          <p className="text-[10px] text-white/60 mb-2 leading-relaxed italic">
-            {getEnhancedEffect(potion.name, potion.effect)}
+          <p className="text-[10px] text-white/60 mb-3 leading-relaxed italic line-clamp-2 min-h-[30px]">
+            {getEnhancedDescription(potion.name, potion.effect)}
           </p>
 
           <div className="flex gap-2">
