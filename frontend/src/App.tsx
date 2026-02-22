@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { potionApi, playerApi } from "./api";
-import { Potion, Ingredient, NewPotion, Player } from "./types";
+import { Potion, Ingredient, NewPotion, Player, Boss } from "./types";
 import { LoginPage } from "./pages/LoginPage";
 import { LaboratoryPage } from "./pages/LaboratoryPage";
 import { LandingPage } from "./pages/LandingPage";
@@ -9,6 +9,8 @@ import MagicForest from "./components/MagicForest";
 import { ShopModal } from "./components/ShopModal";
 import { ConfirmModal } from "./components/ConfirmModal";
 import { CombatArena } from "./components/CombatArena";
+import { BossSelectionModal } from "./components/BossSelectionModal";
+import { getPotionStats, getEnhancedDescription } from "./potionUtils";
 
 function App() {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
@@ -22,6 +24,8 @@ function App() {
   const [isForestOpen, setIsForestOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isLairOpen, setIsLairOpen] = useState(false);
+  const [isBossSelectionOpen, setIsBossSelectionOpen] = useState(false);
+  const [activeBoss, setActiveBoss] = useState<Boss | null>(null);
   const [showLanding, setShowLanding] = useState(true);
   const [combatPlayerHp, setCombatPlayerHp] = useState(100);
   const [confirmState, setConfirmState] = useState<{
@@ -209,7 +213,7 @@ function App() {
 
     const newPotionData: NewPotion & { quantity: number } = {
       name: potionName,
-      effect: potionDescription,
+      effect: getEnhancedDescription(potionName, potionDescription),
       color: `${color1},${color2}`,
       rarity: price > 750 ? "Legendary" : price > 450 ? "Rare" : "Common",
       price,
@@ -378,56 +382,7 @@ function App() {
   };
 
   const calculatePotionCombatEffect = (potion: Potion) => {
-    // Combat logic: Higher rarity = more power
-    const powerScale =
-      potion.rarity === "Legendary"
-        ? 2.5
-        : potion.rarity === "Rare"
-          ? 1.6
-          : 1.0;
-
-    let damage = 0;
-    let heal = 0;
-
-    const name = potion.name;
-
-    // Check specific iconic potions
-    if (name === "Void Whisper" || name === "Spectral Toxin") {
-      damage = 60 * powerScale;
-    } else if (name === "Thunder Drake Essence") {
-      damage = 45 * powerScale;
-    } else if (name === "Eternal Sunfire" || name === "Dragon's Rebirth") {
-      heal = 40 * powerScale;
-      damage = 20 * powerScale;
-    } else if (name === "Lunar Mirage") {
-      heal = 25 * powerScale;
-      damage = 10 * powerScale;
-    } else if (name === "Grand Alchemist's Elixir") {
-      heal = 50 * powerScale;
-      damage = 50 * powerScale;
-    } else {
-      // Generic Categorization based on name prefixes
-      if (
-        name.includes("Fiery") ||
-        name.includes("Arcane") ||
-        name.includes("Unstable")
-      ) {
-        damage = 30 * powerScale;
-      } else if (name.includes("Radiant") || name.includes("Purified")) {
-        heal = 30 * powerScale;
-      } else if (name.includes("Shadowed") || name.includes("Misty")) {
-        damage = 15 * powerScale;
-        heal = 15 * powerScale;
-      } else {
-        damage = 20 * powerScale;
-        heal = 5 * powerScale;
-      }
-    }
-
-    return {
-      damage: Math.floor(damage),
-      heal: Math.floor(heal),
-    };
+    return getPotionStats(potion);
   };
 
   const handleGather = async (materialKey: keyof Player) => {
@@ -511,7 +466,7 @@ function App() {
         onGoToForest={() => setIsForestOpen(true)}
         onSellPotion={handleSellPotion}
         onOpenShop={() => setIsShopOpen(true)}
-        onGoToLair={() => setIsLairOpen(true)}
+        onGoToLair={() => setIsBossSelectionOpen(true)}
       />
       {isForestOpen && (
         <MagicForest
@@ -527,15 +482,27 @@ function App() {
           onClose={() => setIsShopOpen(false)}
         />
       )}
-      {isLairOpen && (
+      {isBossSelectionOpen && (
+        <BossSelectionModal
+          onSelect={(boss) => {
+            setActiveBoss(boss);
+            setIsBossSelectionOpen(false);
+            setIsLairOpen(true);
+          }}
+          onClose={() => setIsBossSelectionOpen(false)}
+        />
+      )}
+      {isLairOpen && activeBoss && (
         <CombatArena
           player={currentPlayer}
           playerHp={combatPlayerHp}
           setPlayerHp={setCombatPlayerHp}
           potions={potions}
+          selectedBoss={activeBoss}
           onClose={() => {
             setIsLairOpen(false);
-            setCombatPlayerHp(100); // Reset for next battle when leaving
+            setCombatPlayerHp(100);
+            setActiveBoss(null);
           }}
           onVictory={handleLairVictory}
           onUsePotion={calculatePotionCombatEffect}
